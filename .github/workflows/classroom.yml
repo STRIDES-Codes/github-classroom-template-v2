@@ -1,0 +1,40 @@
+name: Autograding Tests
+'on':
+- push
+- repository_dispatch
+permissions:
+  checks: write
+  actions: read
+  contents: read
+jobs:
+  run-autograding-tests:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-classroom[bot]'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - name: Clone GuillaumeFalourd/poc-github-actions PUBLIC repository
+      uses: GuillaumeFalourd/clone-github-repo-action@main
+      with:
+          owner: 'STRIDES-Codes'
+          repository: 'github_classroom_test_scripts'
+    - name: Access cloned repository content
+      run: |
+        cp github_classroom_test_scripts/pytest_class_demo_test.py .
+        pwd
+        ls -la
+    - name: pytest_class_demo_test.py
+      id: pytest_class_demo_test-py
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: pytest_class_demo_test.py
+        setup-command: pip install pytest
+        command: pytest pytest_class_demo_test.py
+        timeout: 4
+        max-score: 100
+    - name: Autograding Reporter
+      uses: classroom-resources/autograding-grading-reporter@v1
+      env:
+        PYTEST_CLASS_DEMO_TEST-PY_RESULTS: "${{steps.pytest_class_demo_test-py.outputs.result}}"
+      with:
+        runners: pytest_class_demo_test-py
